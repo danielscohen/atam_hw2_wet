@@ -26,11 +26,13 @@ calc_expr:
 	movq %rsp, %rbp
     xorq  %rax, %rax
     call evaluate
+end:
     movq %rax, %rdi
     call result_as_string
     movq $1, %rdi
     movq $what_to_print, %rsi
     movq %rax, %rdx
+    movq $1, %rax
     syscall
 
     leave
@@ -47,7 +49,8 @@ loop:
 	pushq %rax
 	call getchar
 	popq %rax
-	cmpb $10, input /* new line */
+	movq -8(%rbp) ,%r8 /*counter*/
+	cmpb $10, input(,%r8,1) /* new line */
 	jne not_end	
 	leave
 	ret
@@ -56,7 +59,6 @@ not_end:
 	cmpb $40, input(,%r8,1) /* "(" */
 	jne not_lp
 	incq -8(%rbp)  /* counter++ */
-	pushq %rax
 	call evaluate /* recursive call */
 	pushq %rax /* res of recursion */  
 	jmp loop
@@ -68,7 +70,7 @@ not_lp:
 	jne already_number
 	/* conversion */
 	movq -8(%rbp) ,%r8 /*counter*/
-	addb $0, input(,%r8,1)
+	movb $0, input(,%r8,1)
 	movq $input, %rdi
 	call string_convert
 	pushq %rax /* res of conversion */
@@ -79,13 +81,13 @@ already_number:
     jne single
 
     /* lhs => r8 */
-    movq -40(%rbp), %r8
+    movq -32(%rbp), %r8
     /* rhs => r9 */
-    movq -56(%rbp), %r9
+    movq -48(%rbp), %r9
     /* op => r10 */
-    movq -48(%rbp), %r10
+    movq -40(%rbp), %r10
     
-    jmp *(%r10)
+    jmp *%r10
 
 add:
     addq %r8, %r9
@@ -93,8 +95,8 @@ add:
     jmp finnish
     
 sub:
-    subq %r8, %r9
-    movq %r9, %rax 
+    subq %r9, %r8
+    movq %r8, %rax 
     jmp finnish
 
 mul:
@@ -109,7 +111,7 @@ div:
     jmp finnish
 
 single:
-    movq -40(%rbp), %rax
+    movq -32(%rbp), %rax
         
 finnish:
     leave
@@ -129,7 +131,7 @@ not_minus:
 	jne is_conv
 	/* conversion */
 	movq -8(%rbp) ,%r8 /*counter*/
-	addb $0, input(,%r8,1)
+	movb $0, input(,%r8,1)
 	movq $input, %rdi
     pushq %r11
 	call string_convert
@@ -154,19 +156,19 @@ num:
     jmp loop
     
 plus:
-    pushq add
+    pushq $add
     jmp loop
 
 minus:
-    pushq sub
+    pushq $sub
     jmp loop
 	
 times:
-    pushq mul
+    pushq $mul
     jmp loop
 
 quo:
-    pushq div
+    pushq $div
     jmp loop
 
 
