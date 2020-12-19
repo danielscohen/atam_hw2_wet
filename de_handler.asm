@@ -6,6 +6,9 @@
 .text
 .align 4, 0x90
 my_de_handler:
+    pushq %rbp
+    movq %rsp, %rbp
+
     pushq %rax
     pushq %rdi
     pushq %rsi
@@ -30,10 +33,12 @@ my_de_handler:
     jne not_zero
 
     popq %rax
+    leave
     jmp *old_de_handler
 
 not_zero:
     
     addq $8, %rsp
-    addq $3, (%rsp)
-    iret
+    addq $3, 8(%rsp)
+    leave
+    iretq

@@ -1,0 +1,1 @@
+cmd_/home/student/Documents/hw2_wet/de.ko := ld -r -m elf_x86_64 -z max-page-size=0x200000 -T ./scripts/module-common.lds --build-id  -o /home/student/Documents/hw2_wet/de.ko /home/student/Documents/hw2_wet/de.o /home/student/Documents/hw2_wet/de.mod.o ;  true
